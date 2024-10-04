@@ -22,6 +22,12 @@ describe('ProductsController', () => {
           provide: ProductsService,
           useValue: {
             createProducts: jest.fn().mockReturnValue([]),
+            getSimilarProducts: jest.fn((productId: string) => {
+              if (productId === 'unknown-id') {
+                throw new BadRequestException('Product not found');
+              }
+              return { recommendations: [] }; // Mock recommendations for valid IDs
+            }),
           },
         },
       ],
@@ -71,6 +77,47 @@ describe('ProductsController', () => {
       ];
 
       expect(() => controller.createProducts(invalidProductArray)).toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('getSimilarProducts', () => {
+    it('should return recommendations for a valid product ID', () => {
+      const productsArray = [
+        {
+          name: 'Product A',
+          description: 'Description A',
+          tags: ['tag1', 'tag2'],
+        },
+        {
+          name: 'Product B',
+          description: 'Description B',
+          tags: ['tag2', 'tag3'],
+        },
+        {
+          name: 'Product C',
+          description: 'Description C',
+          tags: ['tag1', 'tag4'],
+        },
+      ];
+
+      controller.createProducts(productsArray);
+
+      jest.spyOn(service, 'getSimilarProducts').mockReturnValue({
+        recommendations: [
+          { productId: '2', score: 1 },
+          { productId: '3', score: 1 },
+        ],
+      });
+
+      const result = controller.getSimilarProducts('1'); // Assuming '1' is the ID of Product A
+      expect(result.recommendations).toHaveLength(2); // There should be 2 recommendations
+      expect(result.recommendations[0].productId).toBe('2'); // Ensure the right products are recommended based on tags
+    });
+
+    it('should throw BadRequestException if product ID is not found', () => {
+      expect(() => controller.getSimilarProducts('unknown-id')).toThrow(
         BadRequestException,
       );
     });

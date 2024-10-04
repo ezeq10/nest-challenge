@@ -48,6 +48,7 @@ export class ProductsService {
     return commonTags.length; // Simple score based on the number of common tags
   }
 
+  // Simple id generator
   private generateId(): string {
     return (++this.idCounter).toString();
   }
