@@ -1,5 +1,11 @@
-// src/products/products.controller.ts
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  BadRequestException,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from './product.entity';
 
@@ -28,5 +34,12 @@ export class ProductsController {
 
     const products = this.productsService.createProducts(productArray);
     return { products };
+  }
+
+  @Get('similar/:productId')
+  getSimilarProducts(@Param('productId') productId: string): {
+    recommendations: { productId: string; score: number }[];
+  } {
+    return this.productsService.getSimilarProducts(productId);
   }
 }
